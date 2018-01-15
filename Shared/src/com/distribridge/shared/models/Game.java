@@ -1,52 +1,44 @@
 package com.distribridge.shared.models;
 
-import com.distribridge.shared.enums.Bid;
-import com.distribridge.shared.enums.Card;
+import com.distribridge.shared.Constants;
 import com.distribridge.shared.enums.Direction;
 import com.distribridge.shared.enums.GameState;
+import com.distribridge.shared.interfaces.IUser;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.*;
 
 class Game implements Serializable {
-    private int _number;
-    private HashMap<Direction, Player> _players;
-    private HashMap<Direction, Hand> _hands;
-    private GameState _state;
-    private Table _table;
-    private Direction _turn;
+    private int number;
+    private HashMap<Direction, IUser> players;
+    private HashMap<Direction, Hand> hands;
+    private GameState state;
+    private Table table;
+    private Direction turn;
+    private HashMap<Card, Direction> currentCards = new HashMap<>();
+    private Contract contract;
+    private LinkedHashMap<Bid, Direction> bids = new LinkedHashMap<>();
 
-    Game(int number, HashMap<Direction, Player> players, HashMap<Direction, Hand> hands, Table table) {
-        _number = number;
-        _players = players;
-        _hands = hands;
-        _table = table;
+    Game(int number, HashMap<Direction, IUser> players, HashMap<Direction, Hand> hands, Table table) {
+        this.number = number;
+        this.players = players;
+        this.hands = hands;
+        this.table = table;
+        state = GameState.NO_GAME;
     }
 
-    int getNumber() {
-        return _number;
-    }
-
-    Hand getHand(Direction d) {
-        return _hands.get(d);
-    }
-
-    Collection<Player> getPlayers() {
-        return _players.values();
-    }
-
-    static Game newGame(int number, List<Player> players, Table table) {
+    static Game newGame(int number, List<IUser> players, Table table) {
         HashMap<Direction, Hand> hands = new HashMap<>();
-        HashMap<Direction, Player> playersMap = new HashMap<>();
+        HashMap<Direction, IUser> playersMap = new HashMap<>();
 
         int i = 0;
-        for (Player p : players) {
+        for (IUser p : players) {
             playersMap.put(Direction.values()[i++], p);
         }
 
         ArrayList<Card> allCards = new ArrayList<>();
-        Collections.addAll(allCards, Card.values());
+        Collections.addAll(allCards, Card.allCards());
 
         Direction currentDirection = Direction.N;
 
@@ -55,7 +47,7 @@ class Game implements Serializable {
         hands.put(Direction.S, new Hand());
         hands.put(Direction.W, new Hand());
 
-        for (int j = 0; j < allCards.size(); j++) {
+        for (int j = 0; j < 52; j++) {
             Card randomCard = allCards.get((int) (Math.random() * allCards.size()));
             allCards.remove(randomCard);
 
@@ -82,43 +74,112 @@ class Game implements Serializable {
         return new Game(number, playersMap, hands, table);
     }
 
+    public static Game Empty(Table table) {
+        return new Game(-1, new HashMap<>(), new HashMap<>(), table);
+    }
+
+    int getNumber() {
+        return number;
+    }
+
+    Hand getHand(Direction d) {
+        return hands.get(d);
+    }
+
     void start() throws RemoteException {
-        _state = GameState.Bidding;
-
-        switch (getNumber() % 4) {
-            case 0:
-                _turn = Direction.W;
-                break;
-            case 1:
-                _turn = Direction.N;
-                break;
-            case 2:
-                _turn = Direction.E;
-                break;
-            case 3:
-                _turn = Direction.S;
-                break;
+        for (Map.Entry<Direction, Hand> set : hands.entrySet()) {
+            table.broadcast(Constants.PROPERTY_HAND, new Object[]{ set.getValue(), set.getValue() });
         }
 
+        state = GameState.BIDDING;
 
-        _table.broadcast("gameState", _state);
+        turn = Direction.values()[getNumber() % 4];
+        table.broadcast(Constants.PROPERTY_GAME_STATE, state);
     }
 
-    public void playCard(Direction direction, Card card) throws RemoteException {
-        if (direction != _turn) {
+    boolean playCard(Direction direction, Card card) throws RemoteException {
+        if (direction != turn) {
+            return false;
+        }
+        boolean result = getHand(direction).removeCard(card);
+        if (!result) {
+            return false;
+        }
+        table.broadcast(Constants.PROPERTY_CARD_PLAYED, new Object[]{ direction, card });
+        currentCards.put(card, direction);
+        nextTurn();
+        if (currentCards.size() != 4) {
+            return true;
+        }
+
+        Card highestCard = Card.getHighest(new ArrayList<>(currentCards.keySet()), contract.getSuit());
+        turn = currentCards.get(highestCard);
+        table.broadcast(Constants.PROPERTY_TURN, turn);
+        return true;
+    }
+
+    void playBid(Direction direction, Bid bid) throws RemoteException {
+        if (direction != turn) {
             return; //TODO show error
         }
-        _table.broadcast("cardPlayed", new Object[] { direction, card });
-    }
 
-    public void playBid(Direction direction, Bid bid) throws RemoteException {
-        if (direction != _turn) {
-            return; //TODO show error
+        bids.put(bid, direction);
+        table.broadcast(Constants.PROPERTY_BID_PLAYED, new Object[]{ direction, bid });
+
+        if (bids.size() < 4) {
+            nextTurn();
+            return;
         }
-        _table.broadcast("bidPlayed", new Object[] { direction, bid });
+
+        if (!Contract.isValid(bids)) {
+            return;
+        }
+
+        contract = new Contract(bids);
+
+        turn = contract.getDirection();
+        nextTurn();
+
+        state = GameState.PLAYING;
+
+        table.broadcast(Constants.PROPERTY_GAME_STATE, state);
     }
 
-    public GameState getState() {
-        return _state;
+    GameState getState() {
+        return state;
+    }
+
+    Hand getDummyHand() {
+        if (contract == null) {
+            return null;
+        }
+        switch (contract.getDirection()) {
+            case N:
+                return getHand(Direction.S);
+            case E:
+                return getHand(Direction.W);
+            case S:
+                return getHand(Direction.N);
+            case W:
+                return getHand(Direction.E);
+            default:
+                return null;
+        }
+    }
+
+    private void nextTurn() {
+        turn = Direction.values()[(turn.ordinal() + 1) % 4];
+    }
+
+    public Direction getLeader() {
+        return contract == null ? null : contract.getDirection();
+    }
+
+    public LinkedHashMap<Bid, Direction> getBids() {
+        return new LinkedHashMap<>(bids);
+    }
+
+    public Contract getContract() {
+        return contract;
     }
 }

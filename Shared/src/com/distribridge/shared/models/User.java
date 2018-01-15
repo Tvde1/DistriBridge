@@ -1,22 +1,41 @@
 package com.distribridge.shared.models;
 
-import java.io.Serializable;
+import com.distribridge.shared.interfaces.IAliveClient;
+import com.distribridge.shared.interfaces.IUser;
 
-public class User implements Serializable {
-    private String _userName;
-    private Stats _stats;
+import java.io.Serializable;
+import java.rmi.RemoteException;
+
+public class User implements IUser, Serializable {
+    private String userName;
+    private Stats stats;
+    private IAliveClient aliveClient;
 
     public User(String userName, Stats stats) {
-        _userName = userName;
-        _stats = stats;
+        this.userName = userName;
+        this.stats = stats;
     }
 
-    public String getUsername() {
-        return _userName;
+    @Override
+    public String getUsername() throws RemoteException {
+        return userName;
     }
 
 
-    public Stats getStats() {
-        return _stats;
+    @Override
+    public Stats getStats() throws RemoteException {
+        return stats;
+    }
+
+    public void setAliveClient(IAliveClient client) {
+        aliveClient = client;
+    }
+
+    @Override
+    public boolean isAlive() throws RemoteException {
+        if (aliveClient == null) {
+            return false;
+        }
+        return aliveClient.isAlive();
     }
 }

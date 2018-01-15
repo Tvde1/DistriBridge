@@ -1,8 +1,8 @@
 package com.distribridge.shared.interfaces;
 
-import com.distribridge.shared.enums.Bid;
-import com.distribridge.shared.enums.Card;
 import com.distribridge.shared.enums.Direction;
+import com.distribridge.shared.models.Bid;
+import com.distribridge.shared.models.Card;
 
 public interface IClientForTable {
     void playedCard(Card card, Direction direction);

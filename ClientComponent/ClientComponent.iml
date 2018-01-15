@@ -9,5 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Shared" exported="" />
+    <orderEntry type="library" name="FontysPublisher" level="project" />
   </component>
 </module>

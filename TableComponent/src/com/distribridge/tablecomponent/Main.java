@@ -2,9 +2,9 @@ package com.distribridge.tablecomponent;
 
 import com.distribridge.shared.Constants;
 import com.distribridge.shared.interfaces.IServerForTable;
+import com.distribridge.shared.interfaces.IUser;
 import com.distribridge.shared.models.SimpleTable;
 import com.distribridge.shared.models.Table;
-import com.distribridge.shared.models.User;
 
 import java.rmi.RemoteException;
 import java.util.logging.Level;
@@ -25,18 +25,20 @@ public class Main {
 
         logger.log(Level.INFO, "Connected to server.");
 
-        User owner = server.fetchUser(name);
+        IUser owner = server.fetchUser(name);
 
         Table table = new Table(owner);
         SimpleTable st = table.toSimpleTable();
         int id = server.registerTable(st);
         table.setId(id);
 
+        table.createGame();
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 server.removeTable(id);
             } catch (RemoteException e) {
-                e.printStackTrace();
+                Constants.logException(e);
             }
         }));
 

@@ -1,16 +1,17 @@
 package com.distribridge.clientcomponent;
 
-import com.distribridge.clientcomponent.utils.ClientConstants;
 import com.distribridge.shared.Constants;
-import com.distribridge.shared.models.User;
-import com.sun.javaws.progress.Progress;
-import com.sun.media.jfxmediaimpl.platform.Platform;
+import com.distribridge.shared.interfaces.IUser;
+import com.distribridge.shared.models.Bid;
+import com.distribridge.shared.models.Hand;
+import fontyspublisher.RemotePublisher;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -29,19 +30,35 @@ public class Main extends Application {
     private static Main instance;
     private Scene scene;
     private String url;
-    private ServerConnector _serverConnector;
-    private User _user;
+    private ServerConnector serverConnector;
+    private IUser user;
+    private TableConnector table;
+    private RemotePublisher publisher;
+    private Hand hand;
+
+    public static void main(String[] args) {
+
+//        for (Bid bid : Bid.allBids()) {
+//            System.out.println(bid.rank());
+//        }
+
+
+        launch(args);
+    }
+
+    public static Main getSingleton() {
+        return instance;
+    }
+
+    public static void showError(String message) {
+        JOptionPane.showMessageDialog(null, message);
+    }
 
     @Override
 //    @SuppressWarnings("squid:S2696")
     public void start(Stage primaryStage) throws Exception {
-        // Set singleton
         instance = this;
 
-        // Load fonts
-//        Font.loadFont(getClass().getResource("/fonts/helvetica.ttf").toExternalForm(), 14);
-
-        // Set login view
         URL view = getClass().getResource(Constants.VIEW_LOGIN);
         Parent loaded = FXMLLoader.load(view);
 
@@ -51,17 +68,18 @@ public class Main extends Application {
         // Set icon
 //        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/img/Logo.png")));
 
-        // Set window
         primaryStage.setScene(scene);
         primaryStage.setTitle("Distribridge");
         primaryStage.setMinWidth(WIDTH);
         primaryStage.setMinHeight(HEIGHT);
 
-        _serverConnector = new ServerConnector();
+        serverConnector = new ServerConnector();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                _serverConnector.logout();
+                if (serverConnector.getIsLoggedIn()) {
+                    serverConnector.logout();
+                }
             } catch (RemoteException e) {
                 //Ignore
             }
@@ -69,10 +87,6 @@ public class Main extends Application {
 
         // Show window
         primaryStage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 
     public void changeView(String view) {
@@ -94,19 +108,39 @@ public class Main extends Application {
         return url;
     }
 
-    public static Main getSingleton() {
-        return instance;
-    }
-
     public ServerConnector getServerConnector() {
-        return _serverConnector;
+        return serverConnector;
     }
 
-    public User getUser() {
-        return _user;
+    public IUser getUser() {
+        return user;
     }
 
-    public void setUser(User user) {
-        _user = user;
+    public void setUser(IUser user) {
+        this.user = user;
+    }
+
+    public TableConnector getTable() {
+        return table;
+    }
+
+    public void setTable(TableConnector table) {
+        this.table = table;
+    }
+
+    public RemotePublisher getPublisher() {
+        return this.publisher;
+    }
+
+    public void setPublisher(RemotePublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public Hand getHand() {
+        return this.hand;
+    }
+
+    public void setHand(Hand hand) {
+        this.hand = hand;
     }
 }

@@ -1,42 +1,41 @@
 package com.distribridge.shared.models;
 
-import com.distribridge.shared.enums.Card;
-
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class Hand {
-    private ArrayList<Card> _cards;
+public class Hand implements Serializable {
+    private ArrayList<Card> cards;
 
     Hand() {
-
+        this(new ArrayList<>());
     }
 
     Hand(ArrayList<Card> cards) {
-        if (cards.size() != 13) {
-            throw new RuntimeException();
-        }
-
-        _cards = cards;
+        this.cards = cards;
     }
 
-    void removeCard(Card card) {
-        if (!_cards.contains(card)) {
-            throw new RuntimeException();
-        }
-        _cards.remove(card);
+    Hand(Hand hand) {
+        cards = new ArrayList<>(hand.getCards());
     }
 
-    List<Card> getCards() {
-        return Collections.unmodifiableList(_cards);
+    public boolean removeCard(Card card) {
+        if (!cards.contains(card)) {
+            throw new RuntimeException();
+        }
+        return cards.remove(card);
+    }
+
+    public List<Card> getCards() {
+        return Collections.unmodifiableList(cards);
     }
 
     void addCard(Card card) {
-        if (_cards.contains(card)) {
+        if (cards.contains(card)) {
             throw new RuntimeException();
         }
 
-        _cards.add(card);
+        cards.add(card);
     }
 }

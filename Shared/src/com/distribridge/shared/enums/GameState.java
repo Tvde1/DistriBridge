@@ -1,9 +1,12 @@
 package com.distribridge.shared.enums;
 
 public enum GameState {
-    NoGame,
-    Idle,
-    Bidding,
-    Playing,
-    Finished
+    NO_GAME,
+    IDLE,
+    BIDDING,
+    PLAYING;
+
+    public boolean isActive() {
+        return this == BIDDING || this == PLAYING;
+    }
 }

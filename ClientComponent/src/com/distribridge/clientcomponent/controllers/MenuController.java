@@ -32,7 +32,7 @@ public class MenuController {
         try {
             Main.getSingleton().getServerConnector().logout();
         } catch (RemoteException e) {
-            e.printStackTrace();
+            Constants.logException(e);
         }
         Main.getSingleton().changeView(Constants.VIEW_LOGIN);
     }

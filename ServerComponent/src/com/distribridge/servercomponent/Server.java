@@ -1,48 +1,57 @@
 package com.distribridge.servercomponent;
 
-import com.distribridge.shared.interfaces.IServerForClient;
-import com.distribridge.shared.interfaces.IServerForClientLogin;
-import com.distribridge.shared.interfaces.IServerForTable;
+import com.distribridge.shared.interfaces.*;
 import com.distribridge.shared.models.SimpleTable;
 import com.distribridge.shared.models.User;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.*;
 
 public class Server implements IServerForClientLogin, IServerForClient, IServerForTable, Remote {
 
     private int tableCounter = 0;
-    private HashMap<Integer, SimpleTable> _tables = new HashMap<>();
-    private DatabaseConnector _databaseConnector = new DatabaseConnector();
-    private HashMap<String, User> _users = new HashMap<>();
+    private HashMap<Integer, SimpleTable> tables = new HashMap<>();
+    private IDatabaseConnector databaseConnector = new DatabaseConnector();
+    private HashMap<String, User> users = new HashMap<>();
 
     Server() {
-        System.out.println("man");
-        //xd
-
-
         Timer t = new Timer();
         t.scheduleAtFixedRate(new TimerTask() {
             @Override
-            public void run() { for (Map.Entry<Integer, SimpleTable> tableEntry : _tables.entrySet()) {
+            public void run() {
+                for (Map.Entry<Integer, SimpleTable> tableEntry : tables.entrySet()) {
                     try {
                         tableEntry.getValue().getTableForServer().isAlive();
-                    } catch(Exception ex) {
+                    } catch (Exception ex) {
                         removeTable(tableEntry.getKey());
                     }
                 }
             }
-        }, 1000 * 60, 1000 * 60);
+        }, (long) 1000 * 60, (long) 1000 * 60);
+
+        t.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                for (Map.Entry<String, User> userEntry : users.entrySet()) {
+                    try {
+                        userEntry.getValue().isAlive();
+                    } catch (Exception ex) {
+                        logout(userEntry.getKey());
+                    }
+                }
+            }
+        }, (long) 1000 * 60, (long) 1000 * 60);
     }
 
     @Override
-    public User fetchUser(String username) {
-        return _databaseConnector.getUser(username);
+    public IUser fetchUser(String username) {
+        return databaseConnector.getUser(username);
     }
 
     @Override
-    public void addWin(String username) {
-        User user = _users.get(username);
+    public void addWin(String username) throws RemoteException {
+        User user = users.get(username);
         if (user == null) {
             return;
         }
@@ -50,8 +59,8 @@ public class Server implements IServerForClientLogin, IServerForClient, IServerF
     }
 
     @Override
-    public void addLoss(String username) {
-        User user = _users.get(username);
+    public void addLoss(String username) throws RemoteException {
+        User user = users.get(username);
         if (user == null) {
             return;
         }
@@ -60,47 +69,54 @@ public class Server implements IServerForClientLogin, IServerForClient, IServerF
 
     @Override
     public List<SimpleTable> getTables() {
-        return new ArrayList<>(_tables.values());
+        ArrayList<SimpleTable> returnList = new ArrayList<>();
+        for (SimpleTable t : tables.values()) {
+            t.refresh();
+            returnList.add(t);
+        }
+        return returnList;
     }
 
     @Override
     public void logout(String username) {
-        User user = _users.get(username);
+        User user = users.get(username);
         if (user == null) {
             return;
         }
-        _databaseConnector.editUser(user);
-        _users.remove(username);
+        databaseConnector.editUser(user);
+        users.remove(username);
     }
 
     @Override
     public int registerTable(SimpleTable table) {
-        _tables.put(tableCounter, table);
+        tables.put(tableCounter, table);
         return tableCounter++;
     }
 
     public void removeTable(int table) {
-        if (!_tables.containsKey(table)) {
+        if (!tables.containsKey(table)) {
             throw new Error("Table id not present.");
         }
-        _tables.remove(table);
+        tables.remove(table);
     }
 
     @Override
-    public User login(String username, String password) {
-        User user = _databaseConnector.getUserWithCredentials(username, password);
+    public User login(String username, String password, IAliveClient client) throws RemoteException {
+        User user = databaseConnector.getUserWithCredentials(username, password);
         if (user != null) {
-            _users.put(username, user);
+            users.put(username, user);
             user.getStats().setLogins(user.getStats().getLogins() + 1);
+            user.setAliveClient(client);
         }
         return user;
     }
 
     @Override
-    public User signup(String username, String password) {
-        User user = _databaseConnector.createUser(username, password);
+    public User signup(String username, String password, IAliveClient client) {
+        User user = databaseConnector.createUser(username, password);
         if (user != null) {
-            _users.put(username, user);
+            users.put(username, user);
+            user.setAliveClient(client);
         }
         return user;
     }

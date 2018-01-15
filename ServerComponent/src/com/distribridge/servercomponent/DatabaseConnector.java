@@ -10,13 +10,13 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.rmi.RemoteException;
+
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-class DatabaseConnector {
-    MongoClient _client;
-    MongoDatabase _database;
-    MongoCollection<Document> _users;
+class DatabaseConnector implements IDatabaseConnector {
+    private MongoCollection<Document> users;
 
     DatabaseConnector() {
         this(false);
@@ -24,20 +24,29 @@ class DatabaseConnector {
 
     DatabaseConnector(Boolean init) {
 
-        MongoClientURI uri  = new MongoClientURI(Constants.DATABASE_URL);
-        _client = new MongoClient(uri);
-        _database = _client.getDatabase(uri.getDatabase());
+        MongoClientURI uri = new MongoClientURI(Constants.DATABASE_URL);
+        MongoClient client = new MongoClient(uri);
+        MongoDatabase database = client.getDatabase(uri.getDatabase());
 
         if (init) {
-            _database.drop();
-            _database.createCollection("users");
+            database.drop();
+            database.createCollection("users");
         }
 
-        _users = _database.getCollection("users");
+        users = database.getCollection("users");
     }
 
-    User createUser(String username, String password) {
-        Document found = _users.find(eq("username", username)).first();
+    private static User DocumentToUser(Document d) {
+        if (d == null) {
+            return null;
+        }
+        Document dStats = d.get("stats", Document.class);
+        Stats stats = new Stats(dStats.getInteger("wins"), dStats.getInteger("losses"), dStats.getInteger("logins"));
+        return new User(d.getString("username"), stats);
+    }
+
+    public User createUser(String username, String password) {
+        Document found = users.find(eq("username", username)).first();
 
         if (found != null) {
             return null;
@@ -51,41 +60,36 @@ class DatabaseConnector {
                         .append("losses", 0)
                         .append("logins", 0));
 
-        _users.insertOne(doc);
+        users.insertOne(doc);
         return new User(username, Stats.Empty());
     }
 
-    User getUser(String username) {
-        Document found = _users.find(eq("username", username)).first();
+    public User getUser(String username) {
+        Document found = users.find(eq("username", username)).first();
         return DocumentToUser(found);
     }
 
-    void editUser(User user) {
-        Bson query = eq("username", user.getUsername());
-        Document found = _users.find(query).first();
-        if (found == null) {
-            return;
+    public void editUser(User user) {
+        try {
+            Bson query = eq("username", user.getUsername());
+            Document found = users.find(query).first();
+            if (found == null) {
+                return;
+            }
+
+            Bson newStats = new Document("stats", new Document()
+                    .append("wins", user.getStats().getWins())
+                    .append("losses", user.getStats().getLosses())
+                    .append("logins", user.getStats().getLogins()));
+
+            users.updateOne(query, new Document("$set", newStats));
+        } catch (RemoteException e) {
+            Constants.logException(e);
         }
-
-        Bson newStats = new Document("stats", new Document()
-            .append("wins", user.getStats().getWins())
-            .append("losses", user.getStats().getLosses())
-            .append("logins", user.getStats().getLogins()));
-
-        _users.updateOne(query, new Document("$set", newStats));
     }
 
-    User getUserWithCredentials(String username, String password) {
-        Document found = _users.find(and(eq("username", username), eq("password", password))).first();
+    public User getUserWithCredentials(String username, String password) {
+        Document found = users.find(and(eq("username", username), eq("password", password))).first();
         return DocumentToUser(found);
-    }
-
-    private static User DocumentToUser(Document d) {
-        if (d == null) {
-            return null;
-        }
-        Document dStats = d.get("stats", Document.class);
-        Stats stats = new Stats(dStats.getInteger("wins"), dStats.getInteger("losses"), dStats.getInteger("logins"));
-        return new User(d.getString("username"), stats);
     }
 }
