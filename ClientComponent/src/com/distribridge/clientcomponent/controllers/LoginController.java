@@ -29,14 +29,16 @@ public class LoginController {
         String password = tfPassword.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
-            return; //TODO: Show error.
+            Main.showError("You didn't input credentials.");
+            return;
         }
 
         try {
             IUser user = Main.getSingleton().getServerConnector().login(username, password);
 
             if (user == null) {
-                return; //TODO: Show error.
+                Main.showError("Could not be authenticated.");
+                return;
             }
 
             Main.getSingleton().setUser(user);

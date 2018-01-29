@@ -2,16 +2,16 @@ package com.distribridge.shared.enums;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class DirectionTest {
     @Test
-    public void opposite() throws Exception {
+    public void opposite() {
         assertEquals(Direction.S, Direction.N.opposite());
     }
 
     @Test
-    public void adjustToMe() throws Exception {
+    public void adjustToMe() {
         assertEquals(2, Direction.S.adjustToMe(Direction.S));
     }
 

@@ -1,20 +1,16 @@
 package com.distribridge.shared.models;
 
 import com.distribridge.shared.interfaces.IAliveClient;
-import com.distribridge.shared.models.Stats;
-import com.distribridge.shared.models.User;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeAll;
 
 import java.rmi.RemoteException;
 
 import static org.junit.Assert.*;
 
 public class UserTest {
-    private User user;
     private final static String userName = "Jan";
+    private User user;
     private Stats stats;
 
     @Before
@@ -24,22 +20,38 @@ public class UserTest {
     }
 
     @Test
-    public void getUsername() throws Exception {
-        assertSame(userName, user.getUsername());
+    public void getUsername() {
+        try {
+            assertSame(userName, user.getUsername());
+        } catch (RemoteException e) {
+            fail();
+        }
     }
 
     @Test
-    public void getStats() throws Exception {
-        assertSame(stats, user.getStats());
+    public void getStats() {
+        try {
+            assertSame(stats, user.getStats());
+        } catch (RemoteException e) {
+            fail();
+        }
     }
 
     @Test
-    public void isAlive() throws Exception {
+    public void isAlive() {
         user.setAliveClient(null);
-        assertFalse(user.isAlive());
+        try {
+            assertFalse(user.isAlive());
+        } catch (RemoteException e) {
+            fail();
+        }
 
         user.setAliveClient(new MockAliveClient());
-        assertTrue(user.isAlive());
+        try {
+            assertTrue(user.isAlive());
+        } catch (RemoteException e) {
+            fail();
+        }
     }
 
     class MockAliveClient implements IAliveClient {

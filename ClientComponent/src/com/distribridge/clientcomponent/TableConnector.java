@@ -17,7 +17,6 @@ import java.beans.PropertyChangeEvent;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class TableConnector extends UnicastRemoteObject implements IRemotePropertyListener {
     private ITableForClient table;

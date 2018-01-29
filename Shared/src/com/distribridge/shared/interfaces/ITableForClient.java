@@ -12,7 +12,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public interface ITableForClient extends Remote {
     boolean playCard(Direction direction, Card card) throws RemoteException;

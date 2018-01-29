@@ -37,14 +37,16 @@ public class RegisterController {
         String password = tfPassword.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
-            return; //TODO: Show error.
+            Main.showError("You didn't input anything.");
+            return;
         }
 
         try {
             IUser user = Main.getSingleton().getServerConnector().signup(username, password);
 
             if (user == null) {
-                return; //TODO: Show error.
+                Main.showError("Could not be registered.");
+                return;
             }
 
             Main.getSingleton().setUser(user);

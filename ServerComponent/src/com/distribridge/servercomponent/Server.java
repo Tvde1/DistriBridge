@@ -12,7 +12,7 @@ public class Server implements IServerForClientLogin, IServerForClient, IServerF
 
     private int tableCounter = 0;
     private HashMap<Integer, SimpleTable> tables = new HashMap<>();
-    private IDatabaseConnector databaseConnector = new DatabaseConnector();
+    private IDatabaseConnector databaseConnector = new MockDatabaseConnector();
     private HashMap<String, User> users = new HashMap<>();
 
     Server() {

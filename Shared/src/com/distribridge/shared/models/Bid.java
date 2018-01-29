@@ -6,7 +6,6 @@ import javafx.util.Pair;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class Bid implements Serializable {
     private Suit suit;

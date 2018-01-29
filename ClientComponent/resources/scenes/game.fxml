@@ -37,7 +37,7 @@
                 <TextArea fx:id="tbChat" editable="false" layoutX="-1.0" layoutY="87.0" prefHeight="218.0"
                           prefWidth="145.0"/>
                 <Button fx:id="btnSend" layoutX="93.0" layoutY="340.0" mnemonicParsing="false"
-                        onAction="#onBtnSendClick" text="Button"/>
+                        onAction="#onBtnSendClick" text="Send"/>
                 <TextField fx:id="tfChat" layoutX="-1.0" layoutY="307.0" prefHeight="25.0" prefWidth="145.0"/>
             </children>
         </AnchorPane>

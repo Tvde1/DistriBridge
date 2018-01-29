@@ -6,12 +6,11 @@ import javafx.util.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 public class BidTest {
     @Test
-    public void badConstructorTest() throws Exception {
+    public void badConstructorTest() {
         try {
             new Bid(null, 1);
             Assert.fail();
@@ -35,7 +34,7 @@ public class BidTest {
     }
 
     @Test
-    public void pass() throws Exception {
+    public void pass() {
         Bid pass = Bid.Pass();
         Assert.assertTrue(pass.getIsPass());
         Assert.assertFalse(pass.getIsDouble());
@@ -43,7 +42,7 @@ public class BidTest {
     }
 
     @Test
-    public void Double() throws Exception {
+    public void Double() {
         Bid pass = Bid.Double();
         Assert.assertFalse(pass.getIsPass());
         Assert.assertTrue(pass.getIsDouble());
@@ -51,7 +50,7 @@ public class BidTest {
     }
 
     @Test
-    public void redouble() throws Exception {
+    public void redouble() {
         Bid pass = Bid.Redouble();
         Assert.assertFalse(pass.getIsPass());
         Assert.assertFalse(pass.getIsDouble());
@@ -59,13 +58,13 @@ public class BidTest {
     }
 
     @Test
-    public void allBids() throws Exception {
+    public void allBids() {
         Bid[] allBids = Bid.allBids();
         Assert.assertEquals(7 * 5, allBids.length);
     }
 
     @Test
-    public void canDouble() throws Exception {
+    public void canDouble() {
         LinkedHashMap<Bid, Direction> bids = new LinkedHashMap<>();
         Bid bid = new Bid(Suit.C, 1);
         bids.put(bid, Direction.N);
@@ -77,7 +76,7 @@ public class BidTest {
     }
 
     @Test
-    public void canRedouble() throws Exception {
+    public void canRedouble() {
         LinkedHashMap<Bid, Direction> bids = new LinkedHashMap<>();
         Bid bid = new Bid(Suit.C, 1);
         Bid bid2 = Bid.Double();
@@ -91,7 +90,7 @@ public class BidTest {
     }
 
     @Test
-    public void getLastBid() throws Exception {
+    public void getLastBid() {
         LinkedHashMap<Bid, Direction> bids = new LinkedHashMap<>();
 
         bids.put(new Bid(Suit.C, 1), Direction.N);
@@ -109,19 +108,19 @@ public class BidTest {
     }
 
     @Test
-    public void getSuit() throws Exception {
+    public void getSuit() {
         Bid bid = new Bid(Suit.C, 2);
         Assert.assertSame(Suit.C, bid.getSuit());
     }
 
     @Test
-    public void getValue() throws Exception {
+    public void getValue() {
         Bid bid = new Bid(Suit.C, 2);
         Assert.assertSame(2, bid.getValue());
     }
 
     @Test
-    public void rank() throws Exception {
+    public void rank() {
         Bid b1 = new Bid(Suit.C, 1);
         Bid b2 = new Bid(Suit.S, 1);
         Bid b3 = new Bid(Suit.C, 2);
@@ -131,7 +130,7 @@ public class BidTest {
     }
 
     @Test
-    public void getIsPass() throws Exception {
+    public void getIsPass() {
         Bid pass = Bid.Pass();
         Bid bidDouble = Bid.Double();
 
@@ -140,7 +139,7 @@ public class BidTest {
     }
 
     @Test
-    public void getIsDouble() throws Exception {
+    public void getIsDouble() {
         Bid pass = Bid.Pass();
         Bid bidDouble = Bid.Double();
 
@@ -149,7 +148,7 @@ public class BidTest {
     }
 
     @Test
-    public void getIsRedouble() throws Exception {
+    public void getIsRedouble() {
         Bid bidDouble = Bid.Double();
         Bid bidRedouble = Bid.Redouble();
 

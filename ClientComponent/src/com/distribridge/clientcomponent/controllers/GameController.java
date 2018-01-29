@@ -402,6 +402,7 @@ public class GameController {
 
     private Pane getBidPane(Direction direction) {
         Direction myDirection = Main.getSingleton().getTable().getMyDirection();
+        System.out.println("Direction: " + direction.ordinal() + " | My Direction: " + myDirection.ordinal());
         int dir = direction.adjustToMe(myDirection);
         Pane node;
         if (dir == 0) {

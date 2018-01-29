@@ -2,7 +2,6 @@ package com.distribridge.clientcomponent;
 
 import com.distribridge.shared.Constants;
 import com.distribridge.shared.interfaces.IUser;
-import com.distribridge.shared.models.Bid;
 import com.distribridge.shared.models.Hand;
 import fontyspublisher.RemotePublisher;
 import javafx.application.Application;

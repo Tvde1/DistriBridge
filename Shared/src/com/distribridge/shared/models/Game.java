@@ -120,14 +120,14 @@ class Game implements Serializable {
 
     void playBid(Direction direction, Bid bid) throws RemoteException {
         if (direction != turn) {
-            return; //TODO show error
+            return;
         }
 
         bids.put(bid, direction);
         table.broadcast(Constants.PROPERTY_BID_PLAYED, new Object[]{ direction, bid });
 
+        nextTurn();
         if (bids.size() < 4) {
-            nextTurn();
             return;
         }
 
@@ -137,8 +137,7 @@ class Game implements Serializable {
 
         contract = new Contract(bids);
 
-        turn = contract.getDirection();
-        nextTurn();
+        turn = Direction.values()[(contract.getDirection().ordinal() + 1) % 4];
 
         state = GameState.PLAYING;
 
